@@ -28,13 +28,8 @@ struct ButtonCircle: ViewModifier {
             
         let foreground = content
             .padding(20)
-            .overlay(GeometryReader { proxy in
-                Color.clear.preference(key: SizeKey.self, value: proxy.size)
-            })
+            .equalSize()
             // change the size when preference key changed
-            .onPreferenceChange(SizeKey.self, perform: { value in
-                self.size = value
-            })
             .foregroundColor(.white)
         
         return foreground.frame(width: size?.width, height: size?.height)
@@ -44,16 +39,61 @@ struct ButtonCircle: ViewModifier {
     
 }
 
+// set a list of cgsize
 struct SizeKey: PreferenceKey {
-    static var defaultValue: CGSize? = nil
-    static func reduce(value: inout CGSize?, nextValue: () -> CGSize?) {
-        value = value ?? nextValue()
+    static var defaultValue: [CGSize] = []
+    static func reduce(value: inout [CGSize], nextValue: () -> [CGSize]) {
+        value.append(contentsOf: nextValue())
     }
 }
 
 struct CircleStyle: ButtonStyle {
     func makeBody(configuration: ButtonStyleConfiguration) -> some View {
         configuration.label.modifier(ButtonCircle(isPressed: configuration.isPressed))
+    }
+}
+
+
+extension EnvironmentValues {
+    var size: CGSize? {
+        get { self[SizeEnvironmentKey.self] }
+        set { self[SizeEnvironmentKey.self] = newValue}
+    }
+}
+
+
+struct SizeEnvironmentKey: EnvironmentKey {
+    static let defaultValue: CGSize? = nil
+}
+
+fileprivate struct EqualSize: ViewModifier {
+    @Environment(\.size) private var size
+    
+    func body(content: Content) -> some View {
+        content.overlay(GeometryReader { proxy in
+            Color.clear.preference(key: SizeKey.self, value: [proxy.size])
+        })
+        .frame(width: size?.width, height: size?.width)
+    }
+}
+
+fileprivate struct EqualSizes: ViewModifier {
+    @State var width: CGFloat?
+    
+    func body(content: Content) -> some View {
+        content.onPreferenceChange(SizeKey.self, perform: { value in
+            self.width = value.map { $0.width }.max()
+        }).environment(\.size, width.map { CGSize (width: $0, height: $0)})
+    }
+}
+
+extension View {
+    func equalSize() -> some View {
+        self.modifier(EqualSize())
+    }
+    
+    func equalSizes() -> some View {
+        self.modifier(EqualSizes())
     }
 }
 
@@ -70,6 +110,7 @@ struct ContentView: View {
         }
         .padding()
         .buttonStyle(CircleStyle())
+        .equalSizes()
     }
 }
 
