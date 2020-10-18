@@ -98,24 +98,126 @@ extension View {
 }
 
 struct ContentView: View {
+    @ObservedObject var stopwatch = StopWatch()
+    
     var body: some View {
-        HStack {
-            Button(action: {}){
-                Text("Start")
-            }.foregroundColor(.green)
-            
-            Button(action: {}){
-                Text("Reset")
-            }.foregroundColor(.red)
+        VStack {
+            Text("\(stopwatch.total.formatted)").font(.system(size: 64))
+            HStack {
+                if stopwatch.isRunning {
+                    Button(action: {
+                        self.stopwatch.stop()
+                    }){
+                        Text("Stop")
+                    }.foregroundColor(.red)
+                } else {
+                    Button(action: {
+                        self.stopwatch.start()
+                    }){
+                        Text("Start")
+                    }.foregroundColor(.green)
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    self.stopwatch.reset()
+                }){
+                    Text("Reset")
+                }.foregroundColor(.gray)
+            }
+            .padding(.horizontal)
+            .equalSizes()
+            .padding()
+            .buttonStyle(CircleStyle())
         }
-        .padding()
-        .buttonStyle(CircleStyle())
-        .equalSizes()
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+    }
+}
+
+
+final class StopWatch: ObservableObject {
+    @Published private var data: StopWatchData = StopWatchData()
+    private var timer: Timer?
+    
+    var isRunning: Bool {
+        self.data.absoluteStartTime != nil
+    }
+    
+    var total: TimeInterval {
+        data.totalTime
+    }
+    
+    func start() {
+        timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true, block: {
+            [unowned self] timer in
+            self.data.currentTime = Date().timeIntervalSinceReferenceDate
+        })
+        data.start(at: Date().timeIntervalSinceReferenceDate)
+    }
+    
+    func stop() {
+        timer?.invalidate()
+        timer = nil
+        data.stop()
+    }
+    
+    func reset() {
+        stop()
+        data = StopWatchData()
+    }
+    
+    deinit {
+        stop()
+    }
+}
+
+struct StopWatchData {
+    var absoluteStartTime: TimeInterval?
+    var currentTime: TimeInterval = 0
+    var additionalTime : TimeInterval = 0
+    
+    var totalTime: TimeInterval {
+        guard let start = absoluteStartTime else { return additionalTime }
+        return additionalTime + currentTime - start
+    }
+    
+    mutating func start (at time: TimeInterval) {
+        currentTime = time
+        absoluteStartTime = time
+    }
+    
+    mutating func stop() {
+        additionalTime = totalTime
+        absoluteStartTime  = nil
+    }
+}
+
+let formater: DateComponentsFormatter = {
+    let f = DateComponentsFormatter()
+    f.allowedUnits = [.minute, .second]
+    f.zeroFormattingBehavior = .pad
+    return f
+}()
+
+
+let numberFormatter: NumberFormatter = {
+    let f = NumberFormatter()
+    f.maximumFractionDigits = 1
+    f.minimumFractionDigits = 1
+    f.maximumIntegerDigits = 0
+    f.alwaysShowsDecimalSeparator = true
+    return f
+}()
+
+extension TimeInterval {
+    var formatted: String {
+        let ms = self.truncatingRemainder(dividingBy: 1)
+        return formater.string(from: self)! + numberFormatter.string(from: NSNumber(value: ms))!
     }
 }
