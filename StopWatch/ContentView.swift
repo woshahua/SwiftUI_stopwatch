@@ -104,32 +104,55 @@ struct ContentView: View {
         VStack {
             Text("\(stopwatch.total.formatted)").font(.system(size: 64))
             HStack {
-                if stopwatch.isRunning {
+                ZStack {
                     Button(action: {
                         self.stopwatch.stop()
                     }){
                         Text("Stop")
                     }.foregroundColor(.red)
-                } else {
+                    .visible(stopwatch.isRunning)
+                    
                     Button(action: {
                         self.stopwatch.start()
                     }){
                         Text("Start")
                     }.foregroundColor(.green)
+                    .visible(!stopwatch.isRunning)
                 }
                 
                 Spacer()
                 
-                Button(action: {
-                    self.stopwatch.reset()
-                }){
-                    Text("Reset")
-                }.foregroundColor(.gray)
+                ZStack {
+                    Button(action: {
+                        self.stopwatch.lap()
+                    }){
+                        Text("lab")
+                    }.foregroundColor(.gray)
+                    .visible(stopwatch.isRunning)
+                    
+                    Button(action: {
+                        self.stopwatch.reset()
+                    }){
+                        Text("Reset")
+                    }.foregroundColor(.gray)
+                    .visible(!stopwatch.isRunning)
+                }
             }
             .padding(.horizontal)
             .equalSizes()
             .padding()
             .buttonStyle(CircleStyle())
+            
+            List {
+                ForEach (stopwatch.laps.enumerated().reversed(), id: \.offset) { value in
+                    HStack {
+                        Text(" Lap \(value.offset + 1)")
+                        Text(value.element.0.formatted)
+                            .font(Font.body.monospacedDigit())
+                    }.foregroundColor(value.element.1.color)
+                    
+                }
+            }
         }
     }
 }
@@ -140,6 +163,11 @@ struct ContentView_Previews: PreviewProvider {
     }
 }
 
+extension View {
+    func visible(_ v: Bool) -> some View {
+        self.opacity(v ? 1 : 0)
+    }
+}
 
 final class StopWatch: ObservableObject {
     @Published private var data: StopWatchData = StopWatchData()
@@ -151,6 +179,10 @@ final class StopWatch: ObservableObject {
     
     var total: TimeInterval {
         data.totalTime
+    }
+    
+    var laps: [(TimeInterval, LapType)] {
+        return data.labs
     }
     
     func start() {
@@ -172,6 +204,10 @@ final class StopWatch: ObservableObject {
         data = StopWatchData()
     }
     
+    func lap() {
+        data.lap()
+    }
+    
     deinit {
         stop()
     }
@@ -181,6 +217,16 @@ struct StopWatchData {
     var absoluteStartTime: TimeInterval?
     var currentTime: TimeInterval = 0
     var additionalTime : TimeInterval = 0
+    var _labs: [(TimeInterval, LapType)] = []
+    var currentLapTime: TimeInterval {
+        totalTime - lastLapEnd
+    }
+    
+    var labs: [(TimeInterval, LapType)] {
+        guard totalTime > 0 else { return [] }
+        return _labs + [(currentLapTime, .regular)]
+    }
+    var lastLapEnd: TimeInterval = 0
     
     var totalTime: TimeInterval {
         guard let start = absoluteStartTime else { return additionalTime }
@@ -195,6 +241,16 @@ struct StopWatchData {
     mutating func stop() {
         additionalTime = totalTime
         absoluteStartTime  = nil
+    }
+    
+    mutating func lap() {
+        let lapTimes = _labs.map { $0.0 } + [currentLapTime]
+        if let shortest = lapTimes.min(), let logest = lapTimes.max(), shortest != logest {
+            _labs = lapTimes.map { ($0, $0 == shortest ? .shortest : ($0 == logest ? .logest : .regular))}
+        } else {
+            _labs = lapTimes.map( { ($0, .regular)} )
+        }
+        lastLapEnd = totalTime
     }
 }
 
@@ -219,5 +275,22 @@ extension TimeInterval {
     var formatted: String {
         let ms = self.truncatingRemainder(dividingBy: 1)
         return formater.string(from: self)! + numberFormatter.string(from: NSNumber(value: ms))!
+    }
+}
+
+enum LapType {
+    case logest
+    case shortest
+    case regular
+    
+    var color: Color {
+        switch self {
+        case .regular:
+            return .black
+        case .shortest:
+            return .green
+        case .logest:
+            return .red
+        }
     }
 }
