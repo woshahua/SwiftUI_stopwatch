@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BD15EC66253C4ABF00BE3EF1 /* ClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD15EC65253C4ABF00BE3EF1 /* ClockView.swift */; };
 		BDBD28C02537FB04001D4BC2 /* StopWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDBD28BF2537FB04001D4BC2 /* StopWatchApp.swift */; };
 		BDBD28C22537FB04001D4BC2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDBD28C12537FB04001D4BC2 /* ContentView.swift */; };
 		BDBD28C42537FB07001D4BC2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BDBD28C32537FB07001D4BC2 /* Assets.xcassets */; };
@@ -33,6 +34,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BD15EC65253C4ABF00BE3EF1 /* ClockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockView.swift; sourceTree = "<group>"; };
 		BDBD28BC2537FB04001D4BC2 /* StopWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StopWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDBD28BF2537FB04001D4BC2 /* StopWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopWatchApp.swift; sourceTree = "<group>"; };
 		BDBD28C12537FB04001D4BC2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 			children = (
 				BDBD28BF2537FB04001D4BC2 /* StopWatchApp.swift */,
 				BDBD28C12537FB04001D4BC2 /* ContentView.swift */,
+				BD15EC65253C4ABF00BE3EF1 /* ClockView.swift */,
 				BDBD28C32537FB07001D4BC2 /* Assets.xcassets */,
 				BDBD28C82537FB07001D4BC2 /* Info.plist */,
 				BDBD28C52537FB07001D4BC2 /* Preview Content */,
@@ -260,6 +263,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BDBD28C22537FB04001D4BC2 /* ContentView.swift in Sources */,
+				BD15EC66253C4ABF00BE3EF1 /* ClockView.swift in Sources */,
 				BDBD28C02537FB04001D4BC2 /* StopWatchApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
