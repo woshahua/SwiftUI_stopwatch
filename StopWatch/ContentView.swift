@@ -102,7 +102,8 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Text("\(stopwatch.total.formatted)").font(.system(size: 64))
+            ClockView(time: stopwatch.total, lapTime: stopwatch.laps.last?.0)
+//            Text("\(stopwatch.total.formatted)").font(.system(size: 64))
             HStack {
                 ZStack {
                     Button(action: {
